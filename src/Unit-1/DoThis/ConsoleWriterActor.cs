@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net.Configuration;
+using System.Runtime.CompilerServices;
 using Akka.Actor;
 
 namespace WinTail
@@ -11,23 +13,28 @@ namespace WinTail
     {
         protected override void OnReceive(object message)
         {
-            var msg = message as string;
-
-            // make sure we got a message
-            if (string.IsNullOrEmpty(msg))
+            if (message is Messages.InputError)
             {
-                Console.ForegroundColor = ConsoleColor.DarkYellow;
-                Console.WriteLine("Please provide an input.\n");
-                Console.ResetColor();
-                return;
+                ConsoleWriter(message,ConsoleColor.Red);
             }
+            else if (message is Messages.InputSuccess)
+            {
+                ConsoleWriter(message,ConsoleColor.Green);
+            }
+            else
+            {
+                Console.WriteLine(message);
+            }
+         }
 
-            // if message has even # characters, display in red; else, green
-            var even = msg.Length % 2 == 0;
-            var color = even ? ConsoleColor.Red : ConsoleColor.Green;
-            var alert = even ? "Your string had an even # of characters.\n" : "Your string had an odd # of characters.\n";
+        public void ConsoleWriter(object message, ConsoleColor color)
+        {
+            dynamic msg = color == ConsoleColor.Green ? (dynamic) (Messages.InputSuccess) message : (dynamic) (Messages.InputError) message;
+
             Console.ForegroundColor = color;
-            Console.WriteLine(alert);
+
+            Console.WriteLine(msg.Reason);
+
             Console.ResetColor();
 
         }
